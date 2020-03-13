@@ -51,7 +51,7 @@ class DmsfFile < ActiveRecord::Base
   scope :visible, -> { where(deleted: STATUS_ACTIVE) }
   scope :deleted, -> { where(deleted: STATUS_DELETED) }
 
-  validates :name, presence: true, dmsf_file_name: true
+  # validates :name, presence: true, dmsf_file_name: true
   validates :project, presence: true
   validates_uniqueness_of :name, :scope => [:dmsf_folder_id, :project_id, :deleted],
     conditions: -> { where(deleted: STATUS_ACTIVE) }
@@ -77,6 +77,9 @@ class DmsfFile < ActiveRecord::Base
     :project_key => 'project_id',
     :date_column => "#{table_name}.updated_at"
 
+  cattr_accessor :thumbnails_storage_path
+  @@thumbnails_storage_path = File.join(Rails.root, "tmp", "thumbnails")
+  
   before_create :default_values
 
   def default_values

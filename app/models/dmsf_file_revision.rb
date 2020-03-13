@@ -68,8 +68,8 @@ class DmsfFileRevision < ActiveRecord::Base
   validates :title, presence: true
   validates :major_version, presence: true
   validates :minor_version, presence: true
-  validates :dmsf_file, presence: true
-  validates :name, dmsf_file_name: true
+  # validates :dmsf_file, presence: true
+  # validates :name, dmsf_file_name: true
   validates :description, length: { maximum: 1.kilobyte }
 
   def project

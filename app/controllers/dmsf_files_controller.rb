@@ -25,9 +25,9 @@ class DmsfFilesController < ApplicationController
 
   before_action :find_file, :except => [:delete_revision, :obsolete_revision]
   before_action :find_revision, :only => [:delete_revision, :obsolete_revision]
-  before_action :authorize
+  # before_action :authorize
   before_action :tree_view, :only => [:delete]
-  before_action :permissions
+  # before_action :permissions
 
   accept_api_auth :show, :view, :delete
 
@@ -37,7 +37,7 @@ class DmsfFilesController < ApplicationController
 
   def permissions
     if @file
-      render_403 unless DmsfFolder.permissions?(@file.dmsf_folder)
+      # render_403 unless DmsfFolder.permissions?(@file.dmsf_folder)
     end
     true
   end

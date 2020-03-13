@@ -130,6 +130,7 @@
       <span class="icon-only"></span>
       <span class="icon-only"></span>
     <% end %>
+    <%= link_to 'P', preview_dmsf_office_path(file), class: '', target: '_blank' -%>
   <% end %>
   <%= render(:partial => 'dmsf_workflows/approval_workflow_button',
     :locals => {:file => file, :file_approval_allowed => @file_approval_allowed,
