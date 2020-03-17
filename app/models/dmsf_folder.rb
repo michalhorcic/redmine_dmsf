@@ -90,7 +90,7 @@ class DmsfFolder < ActiveRecord::Base
           :datetime => Proc.new {|o| o.updated_at },
           :author => Proc.new {|o| o.user }
 
-  validates :title, presence: true, dmsf_file_name: true
+  # validates :title, presence: true, dmsf_file_name: true
   validates :project, presence: true
   validates_uniqueness_of :title, :scope => [:dmsf_folder_id, :project_id, :deleted],
     conditions: -> { where(deleted: STATUS_ACTIVE) }
