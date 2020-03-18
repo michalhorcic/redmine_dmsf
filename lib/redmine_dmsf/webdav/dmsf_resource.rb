@@ -613,6 +613,16 @@ module RedmineDmsf
       def project_id
         project.id if project
       end
+      DAV_PROPERTIES = %w(
+        getetag
+        resourcetype
+        getcontenttype
+        getcontentlength
+        getlastmodified
+        creationdate
+        displayname
+        lockdiscovery
+      ).map{|prop| { name: prop, ns_href: DAV_NAMESPACE } }.freeze
 
       # array of lock info hashes
       # required keys are :time, :token, :depth
@@ -627,42 +637,42 @@ module RedmineDmsf
         end
       end
 
+      def properties
+        props = DAV_PROPERTIES
+        if supports_locking?
+          props = props.dup # do not attempt to modify the (frozen) constant
+          props << { name: 'supportedlock', ns_href: DAV_NAMESPACE }
+        end
+        props
+      end
+
+      def supports_locking?
+        true
+      end
+
       # returns an array of activelock ox elements
       def lockdiscovery_xml
-        x = Nokogiri::XML::DocumentFragment.parse ''
-        Nokogiri::XML::Builder.with(x) do |doc|
-          doc.lockdiscovery {
-            lockdiscovery.each do |lock|
-              next if lock.expired?
-              doc.activelock {
-                doc.locktype { doc.write }
-                doc.lockscope {
-                  if lock.lock_scope == :scope_exclusive
-                    doc.exclusive
-                  else
-                    doc.shared
-                  end
-                }
-                doc.depth lock.folder.nil? ? '0' : 'infinity'
-                doc.owner lock.user.to_s
-                if lock.expires_at.nil?
-                  doc.timeout 'Infinite'
-                else
-                  doc.timeout "Second-#{(lock.expires_at.to_i - Time.current.to_i)}"
-                end
-                lock_entity = lock.folder || lock.file
-                lock_path = "#{request.scheme}://#{request.host}:#{request.port}#{path_prefix}#{Addressable::URI.escape(lock_entity.project.identifier)}/"
-                lock_path << lock_entity.dmsf_path.map { |e| Addressable::URI.escape(e.respond_to?('name') ? e.name : e.title) }.join('/')
-                lock_path << '/' if lock_entity.is_a?(DmsfFolder) && lock_path[-1,1] != '/'
-                doc.lockroot { doc.href lock_path }
-                if (lock.user.id == User.current.id) || User.current.allowed_to?(:force_file_unlock, project)
-                  doc.locktoken { doc.href lock.uuid }
-                end
-              }
-            end
-          }
+        puts "discvoering locks"
+        if supports_locking?
+          puts "oh yea, they are supported"
+          lockdiscovery.map do |lock|
+            puts "one of locks here"
+            puts lock
+            token = lock.uuid
+            time = lock.expires_at
+            scope = lock.lock_scope == :scope_exclusive ? 'exclusive' : 'shared'
+            type = 'write'
+            depth = lock.folder.nil? ? '0' : 'infinity'
+            owner = lock.user.to_s
+
+            lock_entity = lock.folder || lock.file
+            lock_path = "#{request.scheme}://#{request.host}:#{request.port}#{path_prefix}#{Addressable::URI.escape(lock_entity.project.identifier)}/"
+            lock_path << lock_entity.dmsf_path.map { |e| Addressable::URI.escape(e.respond_to?('name') ? e.name : e.title) }.join('/')
+            lock_path << '/' if lock_entity.is_a?(DmsfFolder) && lock_path[-1,1] != '/'
+            root = lock_path
+            ox_activelock({ time: time, token: token, depth: depth, scope: scope, type: type, owner: owner, root: root})
+          end
         end
-        x
       end
 
       private
