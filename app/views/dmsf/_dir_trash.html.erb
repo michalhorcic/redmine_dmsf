@@ -22,7 +22,11 @@
 
 <td class="dmsf_checkbox"><%= check_box_tag('ids[]', "#{name}-#{id}", false, :id => "subfolder_#{id}") %></td>
 <% if DmsfFolder.is_column_on?('id') %>
+  <% if subfolder %>
     <td class="id"><%= link_to(subfolder.id, edit_dmsf_path(:id => project, :folder_id => subfolder)) %></td>
+  <% else %>
+    <td>Missing subfolder</td>
+  <% end %>
 <% end %>
 <% if DmsfFolder.is_column_on?('title') %>
   <td class="dmsf_title">
